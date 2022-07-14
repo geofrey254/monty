@@ -1,47 +1,57 @@
 #include "monty.h"
 
 /**
- * f_push - add node to the stack
- * @head: head of the stack
- * @counter: line number
- * Return: void
+ * monty_push - Pushes a value to a stack_t linked list.
+ * @stack: Pointer to the top mode node of a stack_t linked list.
+ * @line_number: current working line number of a Monty bytecodes file.
  */
 
-void f_push(stack_t **head, unsigned int counter)
+void monty_push(stack_t **stack, unsigned int line_number)
 {
-	int x, y = 0, flag = 0;
+	stack_t *tmp, *new;
+	int x;
 
-	if (bus.arg)
+	new = malloc(sizeof(stack_t));
+	if (new == NULL)
 	{
-		if (bus.arg[0] == '-')
-			y++;
-		for (; bus.arg[j] != '\0'; y++)
-		{
-			if (bus.arg[j] > 57 || bus.arg[j] < 48)
-				flag = 1;
-		}
-		if (flag == 1)
-		{
-			fprintf(stderr, "L%d: usage: push integer\n", counter);
-			fclose(bus.file);
-			free(bus.content);
-			free_stack(*head);
-			exit(EXIT_FAILURE);
-		}
+		set_op_tok_error(malloc_error());
+		return;
 	}
 
+	if (op_toks[1] == NULL)
+	{
+		set_op_tok_error(no_int_error(line_number));
+		return;
+	}
+
+	for (x = 0; op_toks[1][x]; x++)
+	{
+		if (op_toks[1][x] == '-' && x == 0)
+			continue;
+		if (op_toks[1][x] < '0' || op_toks[1][x] > '9')
+		{
+			set_op_tok_error(no_int_error(line_number));
+			return;
+		}
+	}
+	new->n = atoi(op_toks[1]);
+
+	if (check_mode(*stack) == STACK)
+	{
+		tmp = (*stack)->next;
+		new->prev = *stack;
+		new->next = tmp;
+		if (tmp)
+			tmp->prev = new;
+		(*stack)->next = new;
+	}
 	else
 	{
-		fprintf(stderr, "L%d: usage: push integer\n", counter);
-		fclose(bus.file);
-		free(bus.content);
-		free_stack(*head);
-		exit(EXIT_FAILURE);
+		tmp = *stack;
+		while (tmp->next)
+			tmp = tmp->next;
+		new->prev = tmp;
+		new->next = NULL;
+		tmp->next = new;
 	}
-	i = atoi(bus.arg);
-	if (bus.lifi == 0)
-		addnode(head, i);
-	else
-		addqueue(head, i);
-
 }
